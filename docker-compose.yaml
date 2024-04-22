@@ -11,7 +11,7 @@ services:
       - /dev/net/tun:/dev/net/tun
       - ./tailscale/tailscale_data:/var/lib/tailscale
     environment:
-      - TS_AUTHKEY=${{ secrets.TS_AUTHKEY }}?ephemeral=false
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_SERVE_CONFIG=/tailscale/minio.json
     cap_add:
@@ -22,20 +22,10 @@ services:
   minio:
     image: minio/minio:latest
     environment:
-      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
-      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
-    depends_on:
-      - tailscale
-    network_mode: service:tailscale
-
-  weaviate:
-    image: semitechnologies/weaviate:latest
-    environment:
-      WEAVIATE_ORIGIN: ${{ secrets.WEAVIATE_ORIGIN }}
-    volumes:
-      - weaviate_data:/var/lib/weaviate
     depends_on:
       - tailscale
     network_mode: service:tailscale
@@ -51,8 +41,6 @@ volumes:
   tailscale_data:
     driver: local
   minio_data:
-    driver: local
-  weaviate_data:
     driver: local
 
 networks:
