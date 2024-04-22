@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: tailscale-host
+    container_name: tailscale
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - tailscale_data:/var/lib/tailscale
+    environment:
+      - TS_AUTH_KEY=${{ secrets.TS_AUTH_KEY }}
+      - TS_STATE_DIR=/var/lib/tailscale
+    command: tailscaled
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio-container
+    environment:
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+    command: server /data --console-address ":9001"
+    depends_on:
+      - tailscale
+    network_mode: service:tailscale-host
+    volumes:
+      - minio_data:/data
+
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    environment:
+      WEAVIATE_ORIGIN: ${{ secrets.WEAVIATE_ORIGIN }}
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      QUERY_DEFAULTS_LIMIT: 25
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
+      ENABLE_MODULES: 'backup-s3, text2vec-openai'
+      BACKUP_S3_BUCKET: 'weaviate-backups'
+      BACKUP_S3_ENDPOINT: 'minio:9000'
+      BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.MINIO_ROOT_USER }}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      BACKUP_S3_USE_SSL: 'false'
+      CLUSTER_HOSTNAME: 'node1'
+    depends_on:
+      - minio
+    network_mode: service:tailscale-host
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+  python-app:
+    image: python:3.8-slim
+    environment:
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+    command: python /app/main.py
+    depends_on:
+      - weaviate
+      - minio
+    network_mode: service:tailscale-host
+    volumes:
+      - ./app:/app
+
+volumes:
+  tailscale_data:
+    driver: local
+  minio_data:
+    driver: local
+  weaviate_data:
+    driver: local

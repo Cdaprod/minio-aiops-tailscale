@@ -1,0 +1,19 @@
+{
+    "TCP": {
+        "443": {
+            "HTTPS": true
+        }
+    },
+    "Web": {
+        "aiops.tailb3ac8.ts.net:443": {
+            "Handlers": {
+                "/weaviate": {
+                    "Proxy": "http://weaviate-container:8080"
+                }
+            }
+        }
+    },
+    "AllowFunnel": {
+        "aiops.tailb3ac8.ts.net:443": true
+    }
+}

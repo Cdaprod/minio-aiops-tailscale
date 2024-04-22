@@ -1,0 +1,60 @@
+version: '3.8'
+
+# Set Variables: TS_AUTH, TS_CERT_DOMAIN, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, WEAVIATE_ORGIN
+# Configuration Files: TS_SERVE_CONFIG
+
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - ./tailscale/tailscale_data:/var/lib/tailscale
+    environment:
+      - TS_AUTHKEY=${{ secrets.TS_AUTHKEY }}?ephemeral=false
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/tailscale/aiops.json
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: host
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+    volumes:
+      - minio_data:/data
+    depends_on:
+      - tailscale
+    network_mode: service:tailscale
+
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    environment:
+      WEAVIATE_ORIGIN: ${{ secrets.WEAVIATE_ORIGIN }}
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    depends_on:
+      - tailscale
+    network_mode: service:tailscale
+
+  python-app:
+    build: ./app
+    depends_on:
+      - weaviate
+      - minio
+    network_mode: service:tailscale
+
+volumes:
+  tailscale_data:
+    driver: local
+  minio_data:
+    driver: local
+  weaviate_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge 

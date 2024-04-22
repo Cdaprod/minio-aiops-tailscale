@@ -14,7 +14,7 @@ jobs:
 
     - name: Set up Docker Compose
       run: |
-        docker-compose -f docker-compose.yaml up -d
+        docker-compose -f docker-compose.tailscale.simple.yaml up -d
 
     - name: Capture logs for MinIO
       run: docker-compose logs minio > minio_logs.txt

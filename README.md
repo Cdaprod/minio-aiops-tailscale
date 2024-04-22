@@ -121,5 +121,162 @@ To clone a specific version of this project, use the following command, replacin
 git clone --branch tag_name --depth 1 https://github.com/cdaprod/minio-weaviate-langchain.git
 ```
 
+## Setting up an AIOps Self Hosted P2P Development Environment
+Here's a step-by-step guide to set up a GitHub repository for deploying AIOps with MinIO and Weaviate using Tailscale, along with Docker and GitHub Actions:
+
+### Step 1: Create a New GitHub Repository
+Start by creating a new repository using your existing template. Navigate to [your template repository](https://github.com/Cdaprod/minio-aiops-tailscale/) and use the GitHub interface to generate a new repository from this template.
+
+### Step 2: Create Action Secrets
+Set up the necessary GitHub Actions secrets to securely store and manage sensitive data:
+
+- **TS_AUTH_KEY**: Tailscale authentication key to securely connect your devices.
+- **TS_SERVE_CONFIG**: Configuration details for Tailscale's serve functionality.
+- **TS_CERT_DOMAIN**: Domain for which you are generating HTTPS certificates through Tailscale.
+
+- **MINIO_ROOT_USER**: Username for MinIO admin access.
+- **MINIO_ROOT_PASSWORD**: Password for MinIO admin access.
+
+- **DOCKERHUB_USERNAME**: Your Docker Hub username to pull/push images.
+- **DOCKERHUB_TOKEN**: Access token for Docker Hub to authenticate API requests.
+
+- **GH_TOKEN**: Personal access token for GitHub to authenticate in GitHub Actions.
+
+These secrets can be added to your repository by going to the repository settings, selecting "Secrets" under "Security," then "Actions," and clicking "New repository secret" for each of the keys and their corresponding values.
+
+### Step 3: Create Self-Hosted Runner
+Deploy a self-hosted runner that will handle the CI/CD tasks:
+
+1. **Set Up the Environment**: Prepare a server or a virtual machine where the runner will be installed. This system should have Docker installed if you're planning to build Docker images.
+  
+2. **Download and Configure the Runner**:
+    - Navigate to your repository's settings.
+    - Go to "Actions" then "Runners".
+    - Click "New runner" and follow the instructions to download, configure, and start the runner using the `GH_TOKEN`.
+
+3. **Script for Runner Setup**:
+   ```bash
+   mkdir actions-runner && cd actions-runner
+   curl -o actions-runner-linux-x64-2.283.3.tar.gz -L https://github.com/actions/runner/releases/download/v2.283.3/actions-runner-linux-x64-2.283.3.tar.gz
+   tar xzf actions-runner-linux-x64-2.283.3.tar.gz
+   ./config.sh --url https://github.com/<Your-Github-Username>/<Your-Repo-Name> --token <GH_TOKEN>
+   ./run.sh
+   ```
+
+4. **Start the Runner**:
+   Execute the `run.sh` script to start processing jobs.
+
+### Step 4: Configure CI/CD Workflows
+Create workflows in your repository to automate the deployment process:
+- Define a `.github/workflows/main.yml` file to handle build and deployment tasks triggered by push events or manual triggers.
+- Utilize the secrets you set up for authenticating and configuring services like Docker, MinIO, and Tailscale within these workflows.
+
+This setup will ensure that your application is deployed automatically whenever changes are pushed to your repository, leveraging the power of GitHub Actions and your self-hosted runner.
+
+## POC for Deployment of MinIO+Tailscale Network
+
+For the Proof of Concept (POC) #1, titled "Graveyard," which focuses on deploying AIOps with MinIO and Weaviate over Tailscale using Docker and GitHub Actions, you've outlined a clear set of steps and configurations. Below are the refined details and additional explanations to ensure clarity and completeness of the setup process.
+
+### Detailed Steps for POC #1: Graveyard
+
+#### 1. Docker Compose File
+This Docker Compose file orchestrates the setup for Tailscale and MinIO containers. The Tailscale container acts as a gateway for MinIO, ensuring all communications are secure within your Tailnet.
+
+```yaml
+version: "3.7"
+services:
+  tailscale-minio:
+    image: tailscale/tailscale:latest
+    hostname: tailscale-minio
+    environment:
+      - TS_AUTHKEY=${TS_AUTH_KEY}  # Tailscale authentication key
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ${PWD}/tailscale-minio/state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    depends_on:
+      - tailscale-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data
+    volumes:
+      - minio_data:/data
+    network_mode: service:tailscale-minio
+
+volumes:
+  minio_data:
+```
+
+#### 2. GitHub Actions Workflow
+Automate the deployment process via GitHub Actions, providing a CI/CD pipeline that builds, deploys, and verifies the Docker containers.
+
+```yaml
+name: Deploy AIOps with Tailscale
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Environment
+        run: docker info
+
+      - name: Build and Push Docker images
+        run: |
+          docker-compose build
+          docker-compose push
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose up -d
+
+      - name: Verify Deployment
+        run: |
+          docker-compose ps
+```
+Place this YAML file under `.github/workflows/deploy.yml` in your GitHub repository.
+
+#### 3. Setting Up Secrets in GitHub Actions
+Securely store your Tailscale and MinIO credentials as secrets in GitHub Actions:
+
+- `TS_AUTH_KEY`: Tailscale authentication key.
+- `MINIO_ROOT_USER`: MinIO admin username.
+- `MINIO_ROOT_PASSWORD`: MinIO admin password.
+
+Navigate to your GitHub repository → Settings → Secrets → Actions, and add these secrets accordingly.
+
+#### 4. Executing Commands
+To launch the environment, use:
+
+```bash
+docker-compose up -d
+```
+
+To check the status of your deployment:
+
+```bash
+docker-compose ps
+```
+
+This setup will deploy MinIO as your object storage and Tailscale as the secure network overlay, enabling secure, scalable AIOps capabilities. Ensure to test the configuration thoroughly to validate that all components are correctly interacting and accessible within your Tailnet. This foundation will be crucial for scaling to more complex deployments, such as integrating Weaviate for AI-powered data management, which you might cover in future POCs.
+
 ## Contributing
 We welcome contributions! Please read our contributing guidelines on how to propose changes.

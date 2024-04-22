@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - ./tailscale/tailscale_data:/var/lib/tailscale
+    environment:
+      - TS_AUTHKEY=${{ secrets.TS_AUTHKEY }}?ephemeral=false
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/tailscale/config/minio.json
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: host
+
