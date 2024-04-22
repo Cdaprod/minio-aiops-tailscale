@@ -1,7 +1,7 @@
 version: '3.8'
 
 # Set Variables: TS_AUTH, TS_CERT_DOMAIN, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, WEAVIATE_ORGIN
-# Configuration Files: TS_SERVE_CONFIG
+# Configuration Files: TS_SERVE_CONFIG 
 
 services:
   tailscale:
