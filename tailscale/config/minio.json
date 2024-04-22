@@ -5,15 +5,15 @@
         }
     },
     "Web": {
-        "aiops.tailb3ac8.ts.net:443": {
+        "aiops.{ secrets.TS_CERT_DOMAIN }:443": {
             "Handlers": {
-                "/minio": {
+                "/": {
                     "Proxy": "http://minio-container:9001"
                 }
             }
         }
     },
     "AllowFunnel": {
-        "aiops.tailb3ac8.ts.net:443": true
+        "aiops.{ secrets.TS_CERT_DOMAIN }:443": false
     }
 }
