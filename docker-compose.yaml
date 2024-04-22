@@ -33,7 +33,7 @@ services:
   python-app:
     build: ./app
     depends_on:
-      - weaviate
+      - tailscale
       - minio
     network_mode: service:tailscale
 
