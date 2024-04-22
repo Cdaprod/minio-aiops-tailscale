@@ -1,6 +1,7 @@
 # Build with GitHub Actions: MinIO Weaviate Python
 
 #### Workflow Status Badges:
+[![Deploy](https://github.com/Cdaprod/minio-aiops-tailscale/actions/workflows/docker-compose-deploy-test.yml/badge.svg)](https://github.com/Cdaprod/minio-aiops-tailscale/actions/workflows/docker-compose-deploy-test.yml)
 [![Docker-Compose Build Test](https://github.com/Cdaprod/minio-weaviate/actions/workflows/docker-compose-build-test.yml/badge.svg)](https://github.com/Cdaprod/minio-weaviate/actions/workflows/docker-compose-build-test.yml)
 
 [![Update README with Directory Tree](https://github.com/Cdaprod/minio-weaviate-python/actions/workflows/update_readme.yml/badge.svg)](https://github.com/Cdaprod/minio-weaviate-python/actions/workflows/update_readme.yml)
