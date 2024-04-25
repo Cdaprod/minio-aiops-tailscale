@@ -5,7 +5,7 @@
         }
     },
     "Web": {
-        "aiops.{ secrets.TS_CERT_DOMAIN }:443": {
+        "aiops.{TS_CERT_DOMAIN}:443": {
             "Handlers": {
                 "/": {
                     "Proxy": "http://minio-container:9001"
@@ -14,6 +14,6 @@
         }
     },
     "AllowFunnel": {
-        "aiops.{ secrets.TS_CERT_DOMAIN }:443": false
+        "aiops.{TS_CERT_DOMAIN}:443": false
     }
 }
