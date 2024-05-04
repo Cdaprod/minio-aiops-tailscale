@@ -4,12 +4,13 @@ version: '3.8'
 # Configuration Files: TS_SERVE_CONFIG 
 
 services:
-  tailscale:
+  tailscale-aiops:
     image: tailscale/tailscale:latest
-    container_name: tailscale
+    container_name: tailscale-aiops
+    hostname: tailscale-minio-python # The Tailnet node will be named this for use with MagicDNS
     volumes:
       - /dev/net/tun:/dev/net/tun
-      - ./tailscale/tailscale_data:/var/lib/tailscale
+      - ${PWD}/tailscale-aiops/state:/var/lib/tailscale
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
       - TS_STATE_DIR=/var/lib/tailscale
@@ -28,14 +29,14 @@ services:
       - minio_data:/data
     depends_on:
       - tailscale
-    network_mode: service:tailscale
+    network_mode: service:tailscale-aiops
 
   python-app:
     build: ./app
     depends_on:
       - tailscale
       - minio
-    network_mode: service:tailscale
+    network_mode: service:tailscale-aiops
 
 volumes:
   tailscale_data:
