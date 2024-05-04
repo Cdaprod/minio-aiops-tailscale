@@ -23,19 +23,32 @@ The following directory tree is programatically generated to provide an overview
 │   │   └── python_logs.txt
 │   ├── main.py
 │   └── requirements.txt
+├── docker-compose-incorrect_ts_2.yaml
+├── docker-compose-incorrect_ts_3.yaml
+├── docker-compose.incorrect_ts.yaml
+├── docker-compose.minio-weaviate-python.yaml
 ├── docker-compose.yaml
 ├── minio
 │   ├── Dockerfile
 │   ├── entrypoint.sh
 │   └── logs
 │       └── minio_logs.txt
+├── my-docs
+│   ├── BLOG_DRAFT.md
+│   └── GPT_REFINE_COMPOSE.md
+├── tailscale
+│   ├── config
+│   │   ├── aiops.json
+│   │   ├── minio.json
+│   │   └── weaviate.json
+│   └── docker-compose.tailscale.yaml
 └── weaviate
     ├── data.json
     ├── logs
     │   └── weaviate_logs.txt
     └── schema.json
 
-6 directories, 14 files
+9 directories, 24 files
 
 ```
 <!-- DIRECTORY_TREE_END -->
