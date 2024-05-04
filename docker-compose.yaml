@@ -28,13 +28,13 @@ services:
     volumes:
       - minio_data:/data
     depends_on:
-      - tailscale
+      - tailscale-aiops
     network_mode: service:tailscale-aiops
 
   python-app:
     build: ./app
     depends_on:
-      - tailscale
+      - tailscale-aiops
       - minio
     network_mode: service:tailscale-aiops
 
